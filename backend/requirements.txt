@@ -1,0 +1,28 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+motor==3.5.1
+pymongo==4.8.0
+pydantic==2.9.2
+pydantic-settings==2.5.2
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+# Pinned to 4.0.1, NOT the latest 4.x: bcrypt>=4.1 removed the
+# `__about__.__version__` attribute that passlib 1.7.4's bcrypt backend
+# reads at hash/verify time. It does not break hashing/verification, but it
+# throws a "(trapped) error reading bcrypt version" AttributeError to the
+# console on every single login and every application submission. 4.0.1 is
+# the last release before that attribute was removed, so it works cleanly
+# with passlib 1.7.4 with no console noise. (passlib's own dependency
+# resolver could not be upgraded without touching the hashing API used
+# throughout utils/security.py, so the fix is on the bcrypt side.)
+bcrypt==4.0.1
+python-multipart==0.0.9
+python-dotenv==1.0.1
+email-validator==2.2.0
+
+# Testing (dev only)
+pytest==8.3.3
+pytest-asyncio==0.24.0
+httpx==0.27.2
+mongomock==4.2.0.post1
+mongomock-motor==0.0.34

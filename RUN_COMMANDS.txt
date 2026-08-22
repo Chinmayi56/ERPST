@@ -1,0 +1,89 @@
+StriveNest ERP — Run Commands
+==============================
+
+PREREQUISITE (do this first, every time):
+  MongoDB must be running locally before you start the backend.
+  - Windows: start the "MongoDB" service, or run `mongod` in its own terminal.
+  - Verify it's up on mongodb://localhost:27017 before continuing.
+
+If MongoDB is NOT running, the backend will now fail immediately on startup
+with a clear "[STARTUP ERROR] Could not reach MongoDB..." message in the
+terminal, instead of hanging silently (this was patched — see
+FIXES_APPLIED.md).
+
+
+1) BACKEND
+----------
+cd backend
+.\venv\Scripts\Activate.ps1        (or: python -m venv venv   then activate, if venv doesn't exist yet)
+pip install -r requirements.txt
+python seed_superadmin.py
+python seed_subadmin.py
+python seed_demo_employee.py
+python -m uvicorn server:app --host 0.0.0.0 --port 8001 --reload
+
+Verify before moving on:
+  http://localhost:8001/docs        -> Swagger UI loads
+  http://localhost:8001/api/health  -> {"status":"ok","database":"connected"}
+
+  If "database" says "disconnected", MongoDB isn't reachable — fix that
+  before testing the frontend.
+
+
+2) SUPERADMIN (new terminal)
+-----------------------------
+cd superadmin
+npm install
+npm run dev
+
+Open: http://localhost:3000
+Test:
+  Email login:  superadmin@strivenest.com / SuperAdmin@123
+  Mobile OTP:   9876543210 / 123456
+
+
+3) EMPLOYEE (new terminal)
+----------------------------
+cd employee
+npm install
+npm run dev
+
+Open: http://localhost:3002
+Test:
+  Email login:  nithin@strivenest.com / Nithin@12
+
+
+4) SUBADMIN (new terminal)
+----------------------------------------------------------------------
+cd subadmin
+npm install
+npm run dev
+
+Open: http://localhost:3001
+Test:
+  Email login:  subadmin@strivenest.com / Subadmin@12
+  Mobile OTP:   9876543212 / 123456
+
+
+5) PRODUCTION BUILD CHECK
+---------------------------
+cd superadmin && npm run build
+cd ../employee && npm run build
+cd ../subadmin && npm run build
+
+
+TROUBLESHOOTING "CORS error" IN DEVTOOLS
+------------------------------------------
+1. Confirm http://localhost:8001/api/health returns "database":"connected".
+   If the backend never started (e.g. MongoDB down), every request —
+   including the browser's CORS preflight — gets no response at all, and
+   Chrome shows that as a "CORS error" with 0 bytes transferred, even
+   though nothing is actually misconfigured.
+2. Confirm the frontend really is on port 3000 (SuperAdmin), 3001
+   (SubAdmin), or 3002 (Employee). The vite.config.js files now use
+   strictPort: true, so if the port is already taken by something else,
+   `npm run dev` will fail loudly instead of silently moving to a
+   different port that the backend's CORS_ORIGINS doesn't allow.
+3. Hard-reload the browser (DevTools > Network > Disable cache, then
+   reload) after any .env or vite.config.js change — Vite does not
+   hot-reload environment variables.
